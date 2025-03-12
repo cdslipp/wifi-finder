@@ -15,12 +15,18 @@ const schema = i.schema({
       createdAt: i.any(),
       hasPassword: i.any(),
       requiresPersonalInfo: i.any(),
+      requiresEmail: i.any(),
+      requiresPhone: i.any(),
+      requiresWatchAd: i.any(),
     }),
   },
 });
 
 // Initialize the database
 export const db = init({ appId: APP_ID, schema });
+
+// Export the id function for generating unique IDs
+export { id };
 
 /**
  * Add a new WiFi network
@@ -30,6 +36,9 @@ export const db = init({ appId: APP_ID, schema });
  * @param {number} network.rating - Network rating
  * @param {boolean} network.hasPassword - Whether the network has a password
  * @param {boolean} network.requiresPersonalInfo - Whether the network requires personal info
+ * @param {boolean} network.requiresEmail - Whether the network requires email
+ * @param {boolean} network.requiresPhone - Whether the network requires phone
+ * @param {boolean} network.requiresWatchAd - Whether the network requires watching an ad
  */
 export function addNetwork(network) {
   console.log("Adding network:", network);
@@ -44,6 +53,9 @@ export function addNetwork(network) {
         createdAt: Date.now(),
         hasPassword: network.hasPassword || false,
         requiresPersonalInfo: network.requiresPersonalInfo || false,
+        requiresEmail: network.requiresEmail || false,
+        requiresPhone: network.requiresPhone || false,
+        requiresWatchAd: network.requiresWatchAd || false,
       })
     );
   } catch (error) {

@@ -12,6 +12,9 @@
    * @property {number} createdAt - Creation timestamp
    * @property {boolean} hasPassword - Whether the network has a password
    * @property {boolean} requiresPersonalInfo - Whether the network requires personal info
+   * @property {boolean} requiresEmail - Whether the network requires email
+   * @property {boolean} requiresPhone - Whether the network requires phone
+   * @property {boolean} requiresWatchAd - Whether the network requires watching an ad
    */
 </script>
 
@@ -50,12 +53,56 @@
                     {network.hasPassword ? 'Password Required' : 'No Password'}
                   </span>
                 {/if}
-                
-                {#if network.requiresPersonalInfo !== undefined}
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {network.requiresPersonalInfo ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
-                    {network.requiresPersonalInfo ? 'Requires Personal Info' : 'No Personal Info Required'}
-                  </span>
-                {/if}
+              </div>
+              
+              <div class="mt-2">
+                <h4 class="text-sm font-medium text-gray-700">Connection Requirements:</h4>
+                <ul class="mt-1 space-y-1">
+                  {#if network.requiresEmail}
+                    <li class="flex items-center text-xs text-red-600">
+                      <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd"></path>
+                      </svg>
+                      Requires email address
+                    </li>
+                  {/if}
+                  
+                  {#if network.requiresPhone}
+                    <li class="flex items-center text-xs text-red-600">
+                      <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd"></path>
+                      </svg>
+                      Requires phone number
+                    </li>
+                  {/if}
+                  
+                  {#if network.requiresWatchAd}
+                    <li class="flex items-center text-xs text-red-600">
+                      <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd"></path>
+                      </svg>
+                      Requires watching an ad
+                    </li>
+                  {/if}
+                  
+                  {#if network.requiresPersonalInfo}
+                    <li class="flex items-center text-xs text-red-600">
+                      <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd"></path>
+                      </svg>
+                      Requires other personal information
+                    </li>
+                  {/if}
+                  
+                  {#if !network.requiresEmail && !network.requiresPhone && !network.requiresWatchAd && !network.requiresPersonalInfo}
+                    <li class="flex items-center text-xs text-green-600">
+                      <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                      </svg>
+                      No additional requirements
+                    </li>
+                  {/if}
+                </ul>
               </div>
               
               {#if network.createdAt}

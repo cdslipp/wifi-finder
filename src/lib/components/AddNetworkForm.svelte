@@ -7,6 +7,9 @@
   let rating = $state(5);
   let hasPassword = $state(true);
   let requiresPersonalInfo = $state(false);
+  let requiresEmail = $state(false);
+  let requiresPhone = $state(false);
+  let requiresWatchAd = $state(false);
   let formError = $state('');
   let hoveredRating = $state(0);
   
@@ -36,7 +39,10 @@
         password: hasPassword ? password.trim() : '',
         rating: Number(rating),
         hasPassword,
-        requiresPersonalInfo
+        requiresPersonalInfo,
+        requiresEmail,
+        requiresPhone,
+        requiresWatchAd
       });
     }
     
@@ -46,6 +52,9 @@
     rating = 5;
     hasPassword = true;
     requiresPersonalInfo = false;
+    requiresEmail = false;
+    requiresPhone = false;
+    requiresWatchAd = false;
     formError = '';
   }
   
@@ -133,16 +142,59 @@
       </div>
     {/if}
     
-    <div class="flex items-center">
-      <input
-        type="checkbox"
-        id="requiresPersonalInfo"
-        bind:checked={requiresPersonalInfo}
-        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-      />
-      <label for="requiresPersonalInfo" class="ml-2 block text-sm text-gray-700">
-        Requires personal info (phone/email) to connect
-      </label>
+    <div class="border-t border-gray-200 pt-4 mt-4">
+      <h3 class="text-lg font-medium mb-2">Connection Requirements</h3>
+      <p class="text-sm text-gray-600 mb-3">Did you need to:</p>
+      
+      <div class="space-y-2">
+        <div class="flex items-center">
+          <input
+            type="checkbox"
+            id="requiresEmail"
+            bind:checked={requiresEmail}
+            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label for="requiresEmail" class="ml-2 block text-sm text-gray-700">
+            Enter email address
+          </label>
+        </div>
+        
+        <div class="flex items-center">
+          <input
+            type="checkbox"
+            id="requiresPhone"
+            bind:checked={requiresPhone}
+            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label for="requiresPhone" class="ml-2 block text-sm text-gray-700">
+            Enter phone number
+          </label>
+        </div>
+        
+        <div class="flex items-center">
+          <input
+            type="checkbox"
+            id="requiresWatchAd"
+            bind:checked={requiresWatchAd}
+            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label for="requiresWatchAd" class="ml-2 block text-sm text-gray-700">
+            Watch an advertisement
+          </label>
+        </div>
+        
+        <div class="flex items-center">
+          <input
+            type="checkbox"
+            id="requiresPersonalInfo"
+            bind:checked={requiresPersonalInfo}
+            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label for="requiresPersonalInfo" class="ml-2 block text-sm text-gray-700">
+            Other personal information required
+          </label>
+        </div>
+      </div>
     </div>
     
     <div>
