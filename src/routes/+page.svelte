@@ -1,14 +1,26 @@
 <script>
   import { onMount } from 'svelte';
-  import { enhance } from '$app/forms';
-  import { db } from '$lib/db.js';
+  import { db, addNetworkDirectly, addTestNetwork } from '$lib/db.js';
+  import toast, { Toaster } from 'svelte-5-french-toast';
   
-  /** @type {import('./$types').PageData} */
-  let { data, form } = $props();
+  // Form state
+  let ssid = $state('');
+  let password = $state('');
+  let rating = $state(5);
+  let hasPassword = $state(false);
+  let requiresEmail = $state(false);
+  let requiresPhone = $state(false);
+  let requiresWatchAd = $state(false);
+  let requiresPersonalInfo = $state(false);
   
+  // UI state
   let isLoading = $state(true);
+  let isSubmitting = $state(false);
   /** @type {string|null} */
   let error = $state(null);
+  /** @type {string|null} */
+  let success = $state(null);
+  /** @type {any[]} */
   let networks = $state([]);
   let hoveredRating = $state(0);
   
@@ -29,6 +41,7 @@
       (err instanceof Error ? err.message : String(err));
     console.error(errorMessage);
     error = errorMessage;
+    toast.error(errorMessage);
   }
   
   /**
@@ -62,7 +75,7 @@
    * @param {number} value - The rating value
    */
   function setRating(value) {
-    document.getElementById('rating').value = value.toString();
+    rating = value;
     hoveredRating = 0;
   }
   
@@ -81,6 +94,108 @@
     hoveredRating = 0;
   }
   
+  /**
+   * Handle form submission to add a new network
+   * @param {Event} event - The form submission event
+   */
+  async function handleAddNetwork(event) {
+    event.preventDefault();
+    
+    // Validate form
+    if (!ssid) {
+      setError("SSID is required", "Validation Error");
+      return;
+    }
+    
+    if (hasPassword && !password) {
+      setError("Password is required when 'Has Password' is checked", "Validation Error");
+      return;
+    }
+    
+    let loadingId;
+    
+    try {
+      isSubmitting = true;
+      error = null;
+      success = null;
+      
+      loadingId = toast.loading('Adding network...');
+      
+      // Create network object
+      const networkData = {
+        ssid,
+        password: hasPassword ? password : '',
+        rating,
+        reviews: 1,
+        createdAt: Date.now(),
+        hasPassword,
+        requiresEmail,
+        requiresPhone,
+        requiresWatchAd,
+        requiresPersonalInfo
+      };
+      
+      console.log('Adding network with data:', networkData);
+      
+      // Add network to database
+      const result = await addNetworkDirectly(networkData);
+      
+      console.log('Network added successfully:', result);
+      
+      // Reset form
+      ssid = '';
+      password = '';
+      rating = 5;
+      hasPassword = false;
+      requiresEmail = false;
+      requiresPhone = false;
+      requiresWatchAd = false;
+      requiresPersonalInfo = false;
+      
+      // Show success message
+      success = 'Network added successfully!';
+      toast.dismiss(loadingId);
+      toast.success('Network added successfully!');
+    } catch (err) {
+      console.error('Error adding network:', err);
+      setError(err, 'Failed to add network');
+      if (loadingId) toast.dismiss(loadingId);
+    } finally {
+      isSubmitting = false;
+    }
+  }
+  
+  /**
+   * Handle adding a test network
+   */
+  async function handleAddTestNetwork() {
+    let loadingId;
+    
+    try {
+      isSubmitting = true;
+      error = null;
+      success = null;
+      
+      loadingId = toast.loading('Adding test network...');
+      
+      // Add test network to database
+      const result = await addTestNetwork();
+      
+      console.log('Test network added successfully:', result);
+      
+      // Show success message
+      success = 'Test network added successfully!';
+      toast.dismiss(loadingId);
+      toast.success('Test network added successfully!');
+    } catch (err) {
+      console.error('Error adding test network:', err);
+      setError(err, 'Failed to add test network');
+      if (loadingId) toast.dismiss(loadingId);
+    } finally {
+      isSubmitting = false;
+    }
+  }
+  
   // Subscribe to network data on mount
   onMount(() => {
     console.log("Component mounted");
@@ -97,6 +212,8 @@
   });
 </script>
 
+<Toaster />
+
 <div class="container mx-auto px-4 py-8 max-w-5xl">
   <header class="mb-8 text-center">
     <h1 class="text-4xl font-bold text-blue-800 mb-2">Where's the good free Wi-Fi in Kitchener?</h1>
@@ -108,19 +225,19 @@
       <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
         <h2 class="text-2xl font-bold mb-4">Add a New WiFi Network</h2>
         
-        {#if form?.error}
+        {#if error}
           <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {form.error}
+            {error}
           </div>
         {/if}
         
-        {#if form?.success}
+        {#if success}
           <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            {form.message}
+            {success}
           </div>
         {/if}
         
-        <form method="POST" action="?/addNetwork" use:enhance class="space-y-4">
+        <form on:submit={handleAddNetwork} class="space-y-4">
           <div>
             <label for="ssid" class="block text-sm font-medium text-gray-700 mb-1">
               Network Name (SSID)
@@ -128,8 +245,7 @@
             <input
               type="text"
               id="ssid"
-              name="ssid"
-              value={form?.values?.ssid || ''}
+              bind:value={ssid}
               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="e.g. Kitchener Public Library"
             />
@@ -139,8 +255,7 @@
             <input
               type="checkbox"
               id="hasPassword"
-              name="hasPassword"
-              checked={form?.values?.hasPassword || false}
+              bind:checked={hasPassword}
               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label for="hasPassword" class="ml-2 block text-sm text-gray-700">
@@ -155,8 +270,7 @@
             <input
               type="text"
               id="password"
-              name="password"
-              value={form?.values?.password || ''}
+              bind:value={password}
               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="e.g. coffee123"
             />
@@ -171,8 +285,7 @@
                 <input
                   type="checkbox"
                   id="requiresEmail"
-                  name="requiresEmail"
-                  checked={form?.values?.requiresEmail || false}
+                  bind:checked={requiresEmail}
                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label for="requiresEmail" class="ml-2 block text-sm text-gray-700">
@@ -184,8 +297,7 @@
                 <input
                   type="checkbox"
                   id="requiresPhone"
-                  name="requiresPhone"
-                  checked={form?.values?.requiresPhone || false}
+                  bind:checked={requiresPhone}
                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label for="requiresPhone" class="ml-2 block text-sm text-gray-700">
@@ -197,8 +309,7 @@
                 <input
                   type="checkbox"
                   id="requiresWatchAd"
-                  name="requiresWatchAd"
-                  checked={form?.values?.requiresWatchAd || false}
+                  bind:checked={requiresWatchAd}
                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label for="requiresWatchAd" class="ml-2 block text-sm text-gray-700">
@@ -210,8 +321,7 @@
                 <input
                   type="checkbox"
                   id="requiresPersonalInfo"
-                  name="requiresPersonalInfo"
-                  checked={form?.values?.requiresPersonalInfo || false}
+                  bind:checked={requiresPersonalInfo}
                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label for="requiresPersonalInfo" class="ml-2 block text-sm text-gray-700">
@@ -225,7 +335,6 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">
               Rating
             </label>
-            <input type="hidden" id="rating" name="rating" value={form?.values?.rating || 5} />
             <div 
               class="flex items-center" 
               on:mouseleave={clearHoveredRating}
@@ -238,7 +347,7 @@
                   class="w-8 h-8 focus:outline-none"
                 >
                   <svg 
-                    class="w-8 h-8 {(hoveredRating > 0 ? i < hoveredRating : i < (form?.values?.rating || 5)) ? 'text-yellow-400' : 'text-gray-300'}" 
+                    class="w-8 h-8 {(hoveredRating > 0 ? i < hoveredRating : i < rating) ? 'text-yellow-400' : 'text-gray-300'}" 
                     fill="currentColor" 
                     viewBox="0 0 20 20" 
                     xmlns="http://www.w3.org/2000/svg"
@@ -247,15 +356,16 @@
                   </svg>
                 </button>
               {/each}
-              <span class="ml-2 text-gray-700 font-medium">{form?.values?.rating || 5} / 5</span>
+              <span class="ml-2 text-gray-700 font-medium">{rating} / 5</span>
             </div>
           </div>
           
           <button
             type="submit"
-            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            disabled={isSubmitting}
+            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Add Network
+            {isSubmitting ? 'Adding...' : 'Add Network'}
           </button>
         </form>
       </div>
@@ -280,14 +390,13 @@
 }`}
         </pre>
         
-        <form method="POST" action="?/addTestNetwork" use:enhance>
-          <button 
-            type="submit"
-            class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Add Test Network
-          </button>
-        </form>
+        <button 
+          on:click={handleAddTestNetwork}
+          disabled={isSubmitting}
+          class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? 'Adding...' : 'Add Test Network'}
+        </button>
       </div>
     </section>
     

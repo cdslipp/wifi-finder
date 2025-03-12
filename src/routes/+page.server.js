@@ -1,10 +1,11 @@
 import { id } from '@instantdb/core';
-import { db } from '$lib/db.js';
+import { db, logDbStatus, addNetworkDirectly, addTestNetwork } from '$lib/db.js';
 import { fail } from '@sveltejs/kit';
 
 /** @type {import('./$types').Actions} */
 export const actions = {
   addNetwork: async ({ request }) => {
+    console.log("Form submission received for addNetwork");
     const formData = await request.formData();
     
     // Extract form values
@@ -17,8 +18,17 @@ export const actions = {
     const requiresWatchAd = formData.get('requiresWatchAd') === 'on';
     const requiresPersonalInfo = formData.get('requiresPersonalInfo') === 'on';
     
+    console.log("Form data extracted:", { 
+      ssid, password, rating, hasPassword, 
+      requiresEmail, requiresPhone, requiresWatchAd, requiresPersonalInfo 
+    });
+    
+    // Log database status for debugging
+    logDbStatus();
+    
     // Validate form
     if (!ssid) {
+      console.log("Validation failed: SSID is required");
       return fail(400, { 
         error: 'SSID is required',
         values: {
@@ -29,6 +39,7 @@ export const actions = {
     }
     
     if (hasPassword && !password) {
+      console.log("Validation failed: Password is required when 'Has Password' is checked");
       return fail(400, { 
         error: 'Password is required when "Has Password" is checked',
         values: {
@@ -39,21 +50,24 @@ export const actions = {
     }
     
     try {
-      // Add network to database
-      const result = await db.transact(
-        db.tx.networks[id()].update({
-          ssid,
-          password: hasPassword ? password : '',
-          rating,
-          reviews: 1,
-          createdAt: Date.now(),
-          hasPassword,
-          requiresEmail,
-          requiresPhone,
-          requiresWatchAd,
-          requiresPersonalInfo
-        })
-      );
+      // Create network object
+      const networkData = {
+        ssid: ssid ? String(ssid) : '',
+        password: hasPassword ? String(password) : '',
+        rating,
+        reviews: 1,
+        createdAt: Date.now(),
+        hasPassword,
+        requiresEmail,
+        requiresPhone,
+        requiresWatchAd,
+        requiresPersonalInfo
+      };
+      
+      console.log('Adding network with data:', networkData);
+      
+      // Use the direct method to add the network
+      const result = await addNetworkDirectly(networkData);
       
       console.log('Network added successfully:', result);
       
@@ -77,23 +91,14 @@ export const actions = {
   },
   
   addTestNetwork: async () => {
+    console.log("Request received for addTestNetwork");
+    
     try {
-      const testNetwork = {
-        ssid: "Test WiFi " + new Date().toLocaleTimeString(),
-        password: "test123",
-        rating: 4.5,
-        reviews: 1,
-        createdAt: Date.now(),
-        hasPassword: true,
-        requiresPersonalInfo: false,
-        requiresEmail: true,
-        requiresPhone: false,
-        requiresWatchAd: true
-      };
+      // Log database status for debugging
+      logDbStatus();
       
-      const result = await db.transact(
-        db.tx.networks[id()].update(testNetwork)
-      );
+      // Use the dedicated test network function
+      const result = await addTestNetwork();
       
       console.log('Test network added successfully:', result);
       
