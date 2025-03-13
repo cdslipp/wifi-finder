@@ -370,34 +370,7 @@
         </form>
       </div>
       
-      <div class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <h3 class="text-lg font-semibold mb-2">InstantDB Permissions Setup</h3>
-        <p class="text-sm text-gray-600 mb-2">
-          To allow open access to your database, set the following permissions in your InstantDB dashboard:
-        </p>
-        <pre class="bg-gray-800 text-white p-3 rounded text-xs overflow-auto">
-{`{
-  "$default": {
-    "allow": {
-      "$default": "true"
-    }
-  },
-  "attrs": {
-    "allow": {
-      "create": "true"
-    }
-  }
-}`}
-        </pre>
-        
-        <button 
-          on:click={handleAddTestNetwork}
-          disabled={isSubmitting}
-          class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? 'Adding...' : 'Add Test Network'}
-        </button>
-      </div>
+      
     </section>
     
     <section>
@@ -522,23 +495,5 @@
         </div>
       {/if}
     </section>
-  </div>
-  
-  <div class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-    <h3 class="text-lg font-semibold mb-2">Debug Info</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <p class="mb-2">Raw Networks Data ({networks.length} networks):</p>
-        <pre class="bg-gray-800 text-white p-3 rounded text-xs overflow-auto h-60">
-{JSON.stringify(networks, null, 2)}
-        </pre>
-      </div>
-      <div>
-        <p class="mb-2">Sorted Networks ({sortedNetworks.length} networks):</p>
-        <pre class="bg-gray-800 text-white p-3 rounded text-xs overflow-auto h-60">
-{JSON.stringify(sortedNetworks, null, 2)}
-        </pre>
-      </div>
-    </div>
   </div>
 </div>
